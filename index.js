@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB URI from .env
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.tkd5xye.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://jeinhoby:X9coMafLNQe5mXb9@cluster0.tkd5xye.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -33,34 +33,41 @@ async function run() {
     // GET all courses or filter by instructor email
     app.get("/courses", async (req, res) => {
       const email = req.query.email;
-      const query = email ? { instructor_email: email } : {};
+      const query = { instructor_email: email };
       const result = await courseCollection.find(query).toArray();
       res.send(result);
     });
 
     // GET single course by ID
-   app.get("/courses/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid ID format" });
-    }
-    const course = await courseCollection.findOne({ _id: new ObjectId(id) });
-    if (!course) {
-      return res.status(404).json({ message: "Course not found" });
-    }
-    res.send(course);
-  } catch (error) {
-    console.error("Error fetching course by ID:", error);
-    res.status(500).json({ message: "Server Error" });
-  }
-});
+    app.get("/courseDetails/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query ={ _id:id }
+        const course = await courseCollection.findOne(query);
+          
+        if (!course) {
+          return res.status(404).json({ message: "Course not found" });
+        }
+        res.send(course);
+      } catch (error) {
+        console.error("Error fetching course by ID:", error);
+        res.status(500).json({ message: "Server Error" });
+      }
+    });
 
 
     // GET limited courses (top 6)
     app.get("/api/courses", async (req, res) => {
       try {
         const result = await courseCollection.find().limit(6).toArray();
+        res.status(200).json(result);
+      } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+      }
+    });
+    app.get("/courses", async (req, res) => {
+      try {
+        const result = await courseCollection.find().toArray();
         res.status(200).json(result);
       } catch (error) {
         res.status(500).json({ message: "Server Error", error: error.message });
