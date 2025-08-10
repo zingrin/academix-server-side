@@ -22,7 +22,6 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
 
     const courseCollection = client.db("Academix").collection("course");
     const enrollmentCollection = client
